@@ -29,4 +29,10 @@
 #define SYS_getcwd      25
 #define SYS_rename      26
 
+// We predefined some system call numbers for you!
+// You don't need to change this part.
+#define SYS_getppid     27
+#define SYS_times       28
+#define SYS_getmem      29
+
 #endif
