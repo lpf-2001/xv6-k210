@@ -116,6 +116,7 @@ extern uint64 sys_remove(void);
 extern uint64 sys_trace(void);
 extern uint64 sys_sysinfo(void);
 extern uint64 sys_rename(void);
+extern uint64 sys_getppid(void);
 
 static uint64 (*syscalls[])(void) = {
   [SYS_fork]        sys_fork,
@@ -144,6 +145,7 @@ static uint64 (*syscalls[])(void) = {
   [SYS_trace]       sys_trace,
   [SYS_sysinfo]     sys_sysinfo,
   [SYS_rename]      sys_rename,
+  [SYS_getppid]      sys_getppid,
 };
 
 static char *sysnames[] = {
@@ -173,6 +175,7 @@ static char *sysnames[] = {
   [SYS_trace]       "trace",
   [SYS_sysinfo]     "sysinfo",
   [SYS_rename]      "rename",
+  [SYS_getppid]      "getppid",
 };
 
 void
@@ -223,4 +226,14 @@ sys_sysinfo(void)
   }
 
   return 0;
+}
+
+uint64 sys_getppid(void)
+{
+  printf("It's sys_getppid\n");
+  struct proc *p = myproc();
+  struct proc *parents = p->parent;
+  printf("current pid is:%d\n",p->pid);
+  printf("parent's pid:%d\n",parents->pid);
+  return parents->pid;
 }

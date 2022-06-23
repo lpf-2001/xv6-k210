@@ -33,6 +33,9 @@ int remove(char *filename);
 int trace(int mask);
 int sysinfo(struct sysinfo *);
 int rename(char *old, char *new);
+int getppid(void);
+
+
 
 // ulib.c
 int stat(const char*, struct stat*);
