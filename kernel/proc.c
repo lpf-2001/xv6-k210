@@ -197,10 +197,6 @@ freeproc(struct proc *p)
   p->chan = 0;
   p->killed = 0;
   p->xstate = 0;
-  p->proc_tms.utime = 0;
-  p->proc_tms.stime = 0;
-  p->proc_tms.cutime = 0;
-  p->proc_tms.cstime = 0;
   p->state = UNUSED;
 }
 
@@ -511,12 +507,13 @@ wait(uint64 addr)
           pid = np->pid;
           if(addr != 0 && copyout2(addr, (char *)&np->xstate, sizeof(np->xstate)) < 0) {
             release(&np->lock);
-            p->proc_tms.cstime += np->proc_tms.stime + np->proc_tms.cstime;
-            p->proc_tms.cutime += np->proc_tms.utime + np->proc_tms.cutime;
+            
             printf("process cstime:%d,process cutime:%d\n",p->proc_tms.cstime,p->proc_tms.cutime);
             release(&p->lock);
             return -1;
           }
+          p->proc_tms.cstime += np->proc_tms.stime + np->proc_tms.cstime;
+          p->proc_tms.cutime += np->proc_tms.utime + np->proc_tms.cutime;
           freeproc(np);
           release(&np->lock);
           release(&p->lock);
@@ -609,7 +606,7 @@ sched(void)
     panic("sched interruptible");
 
   
-  p->proc_tms.stime += readtime() - p->ikstmp;
+  p->proc_tms.stime += r_time() - p->ikstmp;
 
 
   intena = mycpu()->intena;
@@ -617,7 +614,7 @@ sched(void)
   mycpu()->intena = intena;
 
 
-  p->ikstmp = readtime();
+  p->ikstmp = r_time();
 }
 
 // Give up the CPU for one scheduling round.
@@ -651,7 +648,7 @@ forkret(void)
     fat32_init();
     myproc()->cwd = ename("/");
   }
-  myproc()->ikstmp = readtime();
+  myproc()->ikstmp = r_time();
   usertrapret();
 }
 
@@ -816,5 +813,6 @@ procnum(void)
 
   return num;
 }
+
 
 

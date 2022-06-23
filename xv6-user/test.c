@@ -1,6 +1,5 @@
 #include "kernel/include/types.h"
-#include "kernel/include/stat.h"
-#include "kernel/include/sysinfo.h"
+#include "kernel/include/time.h"
 #include "xv6-user/user.h"
 
 struct tms {
@@ -10,13 +9,36 @@ struct tms {
   uint64 cstime;    // system time of children 
 };
 
-int main()
+int test_times()
 {
-    struct tms tm;
-    printf("%d\n",times(&tm));
-    printf("utime:%d\n",tm.utime);
-    printf("stime:%d\n",tm.stime);
-    printf("cutime:%d\n",tm.cutime);
-    printf("cstime:%d\n",tm.cstime);
-    exit(0);
-}                                                    //2 times test
+	struct tms t;
+	int status;
+	int pid = fork();
+	if(pid > 0){
+		wait(&status);
+		uint64 ticks = times(&t);
+		printf("parent process:\n");
+		printf("the usertime of the process: %d\n",ticks);
+		printf("utime:%d,stime:%d,cutime:%d,cstime:%d\n",t.utime,t.stime,t.cutime,t.cstime);
+	}else if(pid == 0){
+		printf("Hello from child process!\n");
+
+		exit(0);
+	}else{
+		printf("fork error\n");
+	}
+	return 0;
+}
+
+int test_mem()
+{
+	return getmem();
+}
+
+int main(void) {
+	printf("memory size:%d",test_mem());
+	exit(0);
+    return 0;
+}
+
+

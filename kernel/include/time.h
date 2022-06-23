@@ -19,7 +19,6 @@ struct itimeval {
 	struct timeval value;
 };
 
-
 #define CLOCK_REALTIME 		0
 #define CLOCK_MONOTONIC		1	// nonsettable
 

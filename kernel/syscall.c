@@ -119,7 +119,7 @@ extern uint64 sys_sysinfo(void);
 extern uint64 sys_rename(void);
 extern uint64 sys_getppid(void);
 uint64 sys_times(void);
-
+extern uint64 sys_getmem(void);
 static uint64 (*syscalls[])(void) = {
   [SYS_fork]        sys_fork,
   [SYS_exit]        sys_exit,
@@ -149,6 +149,7 @@ static uint64 (*syscalls[])(void) = {
   [SYS_rename]      sys_rename,
   [SYS_getppid]      sys_getppid,
   [SYS_times]      sys_times,
+  [SYS_getmem]      sys_getmem,
 };
 
 static char *sysnames[] = {
@@ -180,6 +181,7 @@ static char *sysnames[] = {
   [SYS_rename]      "rename",
   [SYS_getppid]      "getppid",
   [SYS_times]      "times",
+  [SYS_getmem]      "getmem",
 };
 
 void
@@ -247,11 +249,22 @@ uint64 sys_times(void) {
   if (argaddr(0, &tms) < 0) {
     return -1;
   }
-
+  struct tms* t = (struct tms*)tms;
   struct proc *p = myproc();
-  if (copyout2(tms, (char*)&(p->proc_tms), sizeof(p->proc_tms)) < 0) {
-    return -14;
-  }
+//  if (copyout2(tms, (char*)&(p->proc_tms), sizeof(p->proc_tms)) < 0) {
+//    return -14;
+//  }
+  t->utime = p->proc_tms.utime;
+  t->stime = p->proc_tms.stime;
+  t->cutime = p->proc_tms.cutime;
+  t->cstime = p->proc_tms.cstime;
   return readtime();
 }
+
+uint64 sys_getmem(void) 
+{
+  struct proc *p = myproc();
+  return p->sz/1024;
+}
+
 

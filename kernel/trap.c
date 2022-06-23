@@ -62,6 +62,10 @@ usertrap(void)
 
   struct proc *p = myproc();
   
+  uint64 timestamp = r_time();
+  p->ikstmp = timestamp;
+  p->proc_tms.utime += timestamp - p->okstmp;
+
   // save user program counter.
   p->trapframe->epc = r_sepc();
   
@@ -104,7 +108,9 @@ void
 usertrapret(void)
 {
   struct proc *p = myproc();
-
+  uint64 timestamp = r_time();
+  p->okstmp = timestamp;
+  p->proc_tms.stime += timestamp - p->ikstmp;
   // we're about to switch the destination of traps from
   // kerneltrap() to usertrap(), so turn off interrupts until
   // we're back in user space, where usertrap() is correct.
@@ -262,3 +268,4 @@ void trapframedump(struct trapframe *tf)
   printf("tp: %p\t", tf->tp);
   printf("epc: %p\n", tf->epc);
 }
+
