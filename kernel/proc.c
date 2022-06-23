@@ -56,7 +56,11 @@ procinit(void)
   initlock(&pid_lock, "nextpid");
   for(p = proc; p < &proc[NPROC]; p++) {
       initlock(&p->lock, "proc");
-
+      p->proc_tms.utime = 0;
+      p->proc_tms.stime = 0;
+      p->proc_tms.cutime = 0;
+      p->proc_tms.cstime = 0;
+//      printf("init a process\n");
       // Allocate a page for the process's kernel stack.
       // Map it high in memory, followed by an invalid
       // guard page.
@@ -126,8 +130,10 @@ allocpid() {
 static struct proc*
 allocproc(void)
 {
-  struct proc *p;
 
+
+  struct proc *p;
+  
   for(p = proc; p < &proc[NPROC]; p++) {
     acquire(&p->lock);
     if(p->state == UNUSED) {
@@ -136,11 +142,12 @@ allocproc(void)
       release(&p->lock);
     }
   }
+
   return NULL;
 
 found:
   p->pid = allocpid();
-
+  
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == NULL){
     release(&p->lock);
@@ -190,6 +197,10 @@ freeproc(struct proc *p)
   p->chan = 0;
   p->killed = 0;
   p->xstate = 0;
+  p->proc_tms.utime = 0;
+  p->proc_tms.stime = 0;
+  p->proc_tms.cutime = 0;
+  p->proc_tms.cstime = 0;
   p->state = UNUSED;
 }
 
@@ -500,6 +511,9 @@ wait(uint64 addr)
           pid = np->pid;
           if(addr != 0 && copyout2(addr, (char *)&np->xstate, sizeof(np->xstate)) < 0) {
             release(&np->lock);
+            p->proc_tms.cstime += np->proc_tms.stime + np->proc_tms.cstime;
+            p->proc_tms.cutime += np->proc_tms.utime + np->proc_tms.cutime;
+            printf("process cstime:%d,process cutime:%d\n",p->proc_tms.cstime,p->proc_tms.cutime);
             release(&p->lock);
             return -1;
           }
@@ -594,9 +608,16 @@ sched(void)
   if(intr_get())
     panic("sched interruptible");
 
+  
+  p->proc_tms.stime += readtime() - p->ikstmp;
+
+
   intena = mycpu()->intena;
   swtch(&p->context, &mycpu()->context);
   mycpu()->intena = intena;
+
+
+  p->ikstmp = readtime();
 }
 
 // Give up the CPU for one scheduling round.
@@ -630,7 +651,7 @@ forkret(void)
     fat32_init();
     myproc()->cwd = ename("/");
   }
-
+  myproc()->ikstmp = readtime();
   usertrapret();
 }
 
@@ -795,4 +816,5 @@ procnum(void)
 
   return num;
 }
+
 

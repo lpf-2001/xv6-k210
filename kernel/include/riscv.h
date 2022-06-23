@@ -72,6 +72,14 @@ r_sip()
   return x;
 }
 
+#include "memlayout.h"
+static inline uint64 readtime()
+{
+  uint64 x;
+  x = *(uint64 *)CLINT_MTIME;
+  return x;
+}
+
 static inline void 
 w_sip(uint64 x)
 {

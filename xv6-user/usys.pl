@@ -42,3 +42,4 @@ entry("trace");
 entry("sysinfo");
 entry("rename");
 entry("getppid");
+entry("times");

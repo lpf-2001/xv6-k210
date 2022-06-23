@@ -11,6 +11,7 @@
 #include "include/vm.h"
 #include "include/string.h"
 #include "include/printf.h"
+#include "include/time.h"
 
 // Fetch the uint64 at addr from the current process.
 int
@@ -117,6 +118,7 @@ extern uint64 sys_trace(void);
 extern uint64 sys_sysinfo(void);
 extern uint64 sys_rename(void);
 extern uint64 sys_getppid(void);
+uint64 sys_times(void);
 
 static uint64 (*syscalls[])(void) = {
   [SYS_fork]        sys_fork,
@@ -146,6 +148,7 @@ static uint64 (*syscalls[])(void) = {
   [SYS_sysinfo]     sys_sysinfo,
   [SYS_rename]      sys_rename,
   [SYS_getppid]      sys_getppid,
+  [SYS_times]      sys_times,
 };
 
 static char *sysnames[] = {
@@ -176,6 +179,7 @@ static char *sysnames[] = {
   [SYS_sysinfo]     "sysinfo",
   [SYS_rename]      "rename",
   [SYS_getppid]      "getppid",
+  [SYS_times]      "times",
 };
 
 void
@@ -237,3 +241,17 @@ uint64 sys_getppid(void)
   printf("parent's pid:%d\n",parents->pid);
   return parents->pid;
 }
+
+uint64 sys_times(void) {
+  uint64 tms;
+  if (argaddr(0, &tms) < 0) {
+    return -1;
+  }
+
+  struct proc *p = myproc();
+  if (copyout2(tms, (char*)&(p->proc_tms), sizeof(p->proc_tms)) < 0) {
+    return -14;
+  }
+  return readtime();
+}
+
