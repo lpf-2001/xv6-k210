@@ -27,14 +27,30 @@ set_next_timeout() {
     // the timer will not work.
 
     // this bug seems to disappear automatically
-    // printf("");
+    printf("");
     sbi_set_timer(r_time() + INTERVAL);
 }
 
 void timer_tick() {
+    //printf("timer_tick------\n");
     acquire(&tickslock);
     ticks++;
+    //printf("timer_tick\n");
+    if(myproc())
+    {
+        if(myproc()->flag)
+    {
+        //printf("alarm_timer_tick\n");
+        myproc()->alarm_tick++;
+        if(myproc()->alarm_tick>myproc()->alarm_para)
+        {
+            kill(myproc()->pid);
+        }
+    }
+    }
+    
     wakeup(&ticks);
     release(&tickslock);
     set_next_timeout();
 }
+

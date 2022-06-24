@@ -37,7 +37,7 @@ trapinithart(void)
   w_sstatus(r_sstatus() | SSTATUS_SIE);
   // enable supervisor-mode timer interrupts.
   w_sie(r_sie() | SIE_SEIE | SIE_SSIE | SIE_STIE);
-  //set_next_timeout();
+  set_next_timeout();
   #ifdef DEBUG
   printf("trapinithart\n");
   #endif

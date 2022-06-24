@@ -154,3 +154,16 @@ sys_trace(void)
   myproc()->tmask = mask;
   return 0;
 }
+
+uint64 
+sys_alarm(void)
+{
+  int second;
+  if(argint(0, &second) < 0) {
+    return -1;
+  }
+  myproc()->flag=1;
+  myproc()->alarm_para=second*5;
+  myproc()->alarm_tick=0;
+  return 0;
+}

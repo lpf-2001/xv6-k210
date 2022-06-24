@@ -60,6 +60,8 @@ procinit(void)
       p->proc_tms.stime = 0;
       p->proc_tms.cutime = 0;
       p->proc_tms.cstime = 0;
+      p->flag=0;
+      p->alarm_tick=0;
 //      printf("init a process\n");
       // Allocate a page for the process's kernel stack.
       // Map it high in memory, followed by an invalid

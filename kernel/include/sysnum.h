@@ -34,5 +34,5 @@
 #define SYS_getppid     27
 #define SYS_times       28
 #define SYS_getmem      29
-
+#define SYS_alarm       30
 #endif

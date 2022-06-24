@@ -76,6 +76,10 @@ struct proc {
   struct dirent *cwd;          // Current directory
   char name[16];               // Process name (debugging)
   int tmask;                    // trace mask
+
+  uint64 flag;        //标记为alarm的时钟中断
+  uint64 alarm_tick;    //标记为alarm的时钟计数
+  uint64 alarm_para;     //标记为alarm传入的参数
 };
 
 void            reg_info(void);
