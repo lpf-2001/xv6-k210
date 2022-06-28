@@ -740,6 +740,45 @@ kill(int pid)
   return -1;
 }
 
+
+
+
+// int kill(int pid, int sig) { //给进程发信号
+//   struct proc *tmp;
+
+//   for(p = proc; p < &proc[NPROC]; p++){
+//     acquire(&p->lock);
+//     if(p->pid == pid){
+//       p->killed = 1;
+//       if(p->state == SLEEPING){
+//         // Wake process from sleep().
+//         p->state = RUNNABLE;
+//       }
+//       release(&p->lock);
+//       return 0;
+//     }
+//     release(&p->lock);
+//   }
+
+//   int const len = sizeof(unsigned long) * 8;
+//   int bit = sig % len;
+//   int i = sig / len;
+
+// //  tmp->sig_pending.__val[i] |= 1ul << bit;
+//   if (0 == tmp->killed || sig < tmp->killed) {
+//     tmp->killed = sig;
+//   }
+
+//   // printf("pid %d pending_num = %d\n", pid, tmp->killed);
+
+//   return 0;
+// }
+
+
+
+
+
+
 // Copy to either a user address, or kernel address,
 // depending on usr_dst.
 // Returns 0 on success, -1 on error.

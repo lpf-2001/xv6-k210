@@ -5,7 +5,7 @@ mode := release
 K=kernel
 U=xv6-user
 T=target
-
+ 
 OBJS =
 ifeq ($(platform), k210)
 OBJS += $K/entry_k210.o
@@ -38,8 +38,8 @@ OBJS += \
   $K/disk.o \
   $K/fat32.o \
   $K/plic.o \
-  $K/console.o
-
+  $K/console.o \
+  $K/signal.o  
 ifeq ($(platform), k210)
 OBJS += \
   $K/spi.o \
@@ -49,7 +49,6 @@ OBJS += \
   $K/sdcard.o \
   $K/dmac.o \
   $K/sysctl.o \
-
 else
 OBJS += \
   $K/virtio_disk.o \

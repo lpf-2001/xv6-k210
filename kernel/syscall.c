@@ -12,7 +12,7 @@
 #include "include/string.h"
 #include "include/printf.h"
 #include "include/time.h"
-
+#include "include/signal.h"
 // Fetch the uint64 at addr from the current process.
 int
 fetchaddr(uint64 addr, uint64 *ip)

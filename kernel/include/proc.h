@@ -80,6 +80,9 @@ struct proc {
   uint64 flag;        //标记为alarm的时钟中断
   uint64 alarm_tick;    //标记为alarm的时钟计数
   uint64 alarm_para;     //标记为alarm传入的参数
+
+  int signum;         //信号类型
+
 };
 
 void            reg_info(void);
@@ -90,6 +93,7 @@ int             growproc(int);
 pagetable_t     proc_pagetable(struct proc *);
 void            proc_freepagetable(pagetable_t, uint64);
 int             kill(int);
+//int             kill(int pid, int sig);
 struct cpu*     mycpu(void);
 struct cpu*     getmycpu(void);
 struct proc*    myproc();

@@ -10,7 +10,7 @@
 #include "include/kalloc.h"
 #include "include/string.h"
 #include "include/printf.h"
-
+#include "include/signal.h"
 extern int exec(char *path, char **argv);
 
 uint64
@@ -162,8 +162,10 @@ sys_alarm(void)
   if(argint(0, &second) < 0) {
     return -1;
   }
-  myproc()->flag=1;
+  myproc()->signum=SIGALARM;
   myproc()->alarm_para=second*5;
-  myproc()->alarm_tick=0;
+
+  
+  
   return 0;
 }

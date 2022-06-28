@@ -12,6 +12,7 @@
 #include "include/console.h"
 #include "include/timer.h"
 #include "include/disk.h"
+#include "include/signal.h"
 
 extern char trampoline[], uservec[], userret[];
 
@@ -93,6 +94,10 @@ usertrap(void)
 
   if(p->killed)
     exit(-1);
+  if(p->signum)
+  {
+    sighandle();
+  }
 
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2)

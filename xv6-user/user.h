@@ -39,7 +39,7 @@ int getppid(void);
 int times(struct tms * tm);
 int getmem(void);
 int alarm(int second);
-
+void (*signal(int sig, void (*func)(int)))(int);
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);
