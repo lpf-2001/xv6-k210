@@ -11,11 +11,12 @@ typedef unsigned short uint16;
 typedef unsigned int  uint32;
 typedef unsigned long uint64;
 
+
+typedef void (*func)(int);
+
+
 typedef unsigned long uintptr_t;
 typedef uint64 pde_t;
-
-
-#define SIGINT 4
 
 
 // #define NULL ((void *)0)

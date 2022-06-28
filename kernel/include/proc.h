@@ -8,7 +8,7 @@
 #include "file.h"
 #include "fat32.h"
 #include "trap.h"
-
+#include "signal.h"
 // Saved registers for kernel context switches.
 struct context {
   uint64 ra;
@@ -81,7 +81,7 @@ struct proc {
   uint64 alarm_tick;    //标记为alarm的时钟计数
   uint64 alarm_para;     //标记为alarm传入的参数
 
-  int signum;         //信号类型
+  struct sigaction sigaction;         //信号类型
 
 };
 
@@ -92,7 +92,7 @@ int             fork(void);
 int             growproc(int);
 pagetable_t     proc_pagetable(struct proc *);
 void            proc_freepagetable(pagetable_t, uint64);
-int             kill(int);
+int             kill(int,int);
 //int             kill(int pid, int sig);
 struct cpu*     mycpu(void);
 struct cpu*     getmycpu(void);

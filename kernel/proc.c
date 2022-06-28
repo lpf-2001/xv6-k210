@@ -13,7 +13,7 @@
 #include "include/file.h"
 #include "include/trap.h"
 #include "include/vm.h"
-
+#include "include/signal.h"
 
 struct cpu cpus[NCPU];
 
@@ -62,6 +62,9 @@ procinit(void)
       p->proc_tms.cstime = 0;
       p->flag=0;
       p->alarm_tick=0;
+      p->killed=0;
+      p->sigaction.sig_action=SIG_DFL;
+      p->sigaction.sig_flags=0;
 //      printf("init a process\n");
       // Allocate a page for the process's kernel stack.
       // Map it high in memory, followed by an invalid
@@ -720,14 +723,14 @@ wakeup1(struct proc *p)
 // The victim won't exit until it tries to return
 // to user space (see usertrap() in trap.c).
 int
-kill(int pid)
+kill(int pid,int sig)
 {
   struct proc *p;
 
   for(p = proc; p < &proc[NPROC]; p++){
     acquire(&p->lock);
     if(p->pid == pid){
-      p->killed = 1;
+      p->killed = sig;
       if(p->state == SLEEPING){
         // Wake process from sleep().
         p->state = RUNNABLE;
@@ -857,3 +860,22 @@ procnum(void)
 
 
 
+void inthandle(void) 
+{
+   // printf("handle Ctrl C\n");
+    struct proc* p;
+    int runflag=0;
+    for (p = proc; p < &proc[NPROC]; p++) {
+        if (p->pid >2 && p->parent->pid==2) {
+            if (p->state == RUNNING || p->state == SLEEPING || p->state == RUNNABLE)
+            {
+                kill(p->pid, SIGINT);
+                runflag = 1;
+            }
+        }
+    }
+    if (!runflag) {
+        printf("\n-> / $ ");
+    }
+    return;
+}

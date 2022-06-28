@@ -12,7 +12,7 @@
 #include "include/printf.h"
 #include "include/signal.h"
 extern int exec(char *path, char **argv);
-
+extern struct proc proc[NPROC];
 uint64
 sys_exec(void)
 {
@@ -128,7 +128,7 @@ sys_kill(void)
 
   if(argint(0, &pid) < 0)
     return -1;
-  return kill(pid);
+  return kill(pid,SIGTERM);
 }
 
 // return how many clock tick interrupts have occurred
@@ -162,10 +162,24 @@ sys_alarm(void)
   if(argint(0, &second) < 0) {
     return -1;
   }
-  myproc()->signum=SIGALARM;
-  myproc()->alarm_para=second*5;
+ // myproc()->signum=SIGALARM;
+  myproc()->alarm_tick=second*5;
 
-  
-  
   return 0;
 }
+
+uint64 sys_pause(void)
+{
+  struct proc* p = myproc();
+  printf("pause: waiting for signal to wake up!\n");
+  // p->state = SLEEPING;
+  // scheduler();
+  acquire(&tickslock);
+  while(p->killed == 0){
+    sleep(&ticks, &tickslock);
+  }
+  release(&tickslock);
+  return 0;
+}
+
+

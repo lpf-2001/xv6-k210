@@ -24,6 +24,8 @@
 #define BACKSPACE 0x100
 #define C(x)  ((x)-'@')  // Control-x
 
+extern void inthandle(void) ;
+
 void consputc(int c) {
   if(c == BACKSPACE){
     // if the user typed backspace, overwrite with a space.
@@ -144,7 +146,7 @@ consoleintr(int c)
     }
     break;
   case C('H'): // Backspace
-  case C('C'):myproc()->killed=SIGINT;//或者用kill(myproc()->pid,SIGIN);
+  case C('C'):inthandle();//或者用kill(myproc()->pid,SIGIN);
   case '\x7f':
     if(cons.e != cons.w){
       cons.e--;

@@ -91,17 +91,22 @@ usertrap(void)
     // trapframedump(p->trapframe);
     p->killed = 1;
   }
-
-  if(p->killed)
-    exit(-1);
-  if(p->signum)
-  {
+//  printf("%d\n",p->killed);
+  if (p->killed) {
+    if (SIGTERM == p->killed)
+      exit(-1);
     sighandle();
   }
+
 
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2)
     yield();
+
+
+
+
+
 
   usertrapret();
 }

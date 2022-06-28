@@ -40,6 +40,7 @@ OBJS += \
   $K/plic.o \
   $K/console.o \
   $K/signal.o  
+
 ifeq ($(platform), k210)
 OBJS += \
   $K/spi.o \
@@ -49,6 +50,7 @@ OBJS += \
   $K/sdcard.o \
   $K/dmac.o \
   $K/sysctl.o \
+  
 else
 OBJS += \
   $K/virtio_disk.o \

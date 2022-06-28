@@ -121,6 +121,8 @@ extern uint64 sys_getppid(void);
 uint64 sys_times(void);
 extern uint64 sys_getmem(void);
 extern uint64 sys_alarm(void);
+extern uint64 sys_signal(void);
+extern uint64 sys_pause(void);
 
 static uint64 (*syscalls[])(void) = {
   [SYS_fork]        sys_fork,
@@ -153,6 +155,8 @@ static uint64 (*syscalls[])(void) = {
   [SYS_times]      sys_times,
   [SYS_getmem]      sys_getmem,
   [SYS_alarm]      sys_alarm,
+  [SYS_signal]      sys_signal,
+  [SYS_pause]      sys_pause,
 };
 
 static char *sysnames[] = {
@@ -186,6 +190,8 @@ static char *sysnames[] = {
   [SYS_times]      "times",
   [SYS_getmem]      "getmem",
   [SYS_alarm]      "alarm",
+  [SYS_signal]      "signal",
+  [SYS_pause]      "pause",
 };
 
 void
@@ -271,4 +277,21 @@ uint64 sys_getmem(void)
   return p->sz/1024;
 }
 
+uint64 sys_signal(void)
+{
+  int sig;
+  uint64 addr;
+  if (argint(0, &sig) < 0) {
+    return -1;
+  }
+  if(argaddr(1,&addr)<0){
+    return -1;
+  }
+  myproc()->sigaction.sig_flags=1;
+  myproc()->sigaction.sig_action=(func)addr;
+  if((func)addr==SIG_FUNC)
+    myproc()->sigaction.p=addr;
+  myproc()->sigaction.sig_type=sig;         //我应该等待alarm到达之后再更改killed信号
+  return 0;
+}
 

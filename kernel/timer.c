@@ -9,7 +9,9 @@
 #include "include/timer.h"
 #include "include/printf.h"
 #include "include/proc.h"
+#include "include/signal.h"
 
+extern struct proc proc[NPROC];
 struct spinlock tickslock;
 uint ticks;
 
@@ -36,18 +38,26 @@ void timer_tick() {
     acquire(&tickslock);
     ticks++;
     //printf("timer_tick\n");
-    if(myproc())
-    {
-        if(myproc()->flag)
-    {
-        //printf("alarm_timer_tick\n");
-        myproc()->alarm_tick++;
-        if(myproc()->alarm_tick>myproc()->alarm_para)
+    struct proc *p;
+    
+    for(p = proc; p < &proc[NPROC]; p++) {
+
+      if(p->alarm_tick>0)
+      {
+        p->alarm_tick--;
+       // printf("alarm_timer_tick减减\n");
+        if(p->alarm_tick==0)
         {
-            kill(myproc()->pid);
+         //   printf("alarm_timer_tick time out    proc pid:%d\n",p->pid);
+            if(p->sigaction.sig_flags==0)//没有被signal处理过
+                kill(p->pid,SIGALARM);
+            else
+                kill(p->pid,p->sigaction.sig_type);
+
         }
+      }
     }
-    }
+
     
     wakeup(&ticks);
     release(&tickslock);
