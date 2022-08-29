@@ -134,7 +134,8 @@ fileread(struct file *f, uint64 addr, int n)
         break;
     case FD_ENTRY:
         elock(f->ep);
-          if((r = eread(f->ep, 1, addr, f->off, n)) > 0)
+        //changed
+          if((r = f->ep->e_func->eread(f->ep, 1, addr, f->off, n)) > 0)
             f->off += r;
         eunlock(f->ep);
         break;
@@ -187,6 +188,11 @@ dirnext(struct file *f, uint64 addr)
   if(f->readable == 0 || !(f->ep->attribute & ATTR_DIRECTORY))
     return -1;
 
+  //changed
+  struct proc* p;
+  char pdir[20];
+  struct dirent* tep;
+  //changed
   struct dirent de;
   struct stat st;
   int count = 0;
@@ -196,8 +202,26 @@ dirnext(struct file *f, uint64 addr)
     f->off += count * 32;
   }
   eunlock(f->ep);
-  if (ret == -1)
+  if (ret == -1){
+    //changed
+
+    if (strncmp(f->ep->filename, "proc", 4) == 0) {
+          for (p = proc; p < &proc[NPROC]; p++) {
+              itoa(p->pid, pdir);
+              if (p->state != UNUSED) {
+                  printf("%s DIR\t0\n", fmtname(pdir));
+              }
+          }
+      }
+      else if (strncmp(f->ep->parent->filename, "proc", 4) == 0) {
+          tep = deget(f->ep,"stat");
+          if (tep != NULL) {
+              printf("%s FILE\t0\n", fmtname(tep->filename));
+          }
+      }
+//changed
     return 0;
+  }
 
   f->off += count * 32;
   estat(&de, &st);

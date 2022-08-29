@@ -33,7 +33,7 @@ loadseg(pagetable_t pagetable, uint64 va, struct dirent *ep, uint offset, uint s
       n = sz - i;
     else
       n = PGSIZE;
-    if(eread(ep, 0, (uint64)pa, offset+i, n) != n)
+    if(ep->e_func->eread(ep, 0, (uint64)pa, offset+i, n) != n)
       return -1;
   }
 
@@ -72,7 +72,7 @@ int exec(char *path, char **argv)
   elock(ep);
 
   // Check ELF header
-  if(eread(ep, 0, (uint64) &elf, 0, sizeof(elf)) != sizeof(elf))
+  if(ep->e_func->eread(ep, 0, (uint64) &elf, 0, sizeof(elf)) != sizeof(elf))
     goto bad;
   if(elf.magic != ELF_MAGIC)
     goto bad;
@@ -81,7 +81,7 @@ int exec(char *path, char **argv)
 
   // Load program into memory.
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
-    if(eread(ep, 0, (uint64)&ph, off, sizeof(ph)) != sizeof(ph))
+    if(ep->e_func->eread(ep, 0, (uint64)&ph, off, sizeof(ph)) != sizeof(ph))
       goto bad;
     if(ph.type != ELF_PROG_LOAD)
       continue;

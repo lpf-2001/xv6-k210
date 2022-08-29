@@ -217,13 +217,21 @@ sys_mkdir(void)
 {
   char path[FAT32_MAX_PATH];
   struct dirent *ep;
-
+  char* proc = "/proc";
+  char* proc1 = "proc";
   if(argstr(0, path, FAT32_MAX_PATH) < 0 || (ep = create(path, T_DIR, 0)) == 0){
     return -1;
+  }
+  if (strncmp(proc, path, 5) == 0 || strncmp(proc1, path, 4)==0) {
+      eunlock(ep);
+      eput(ep);
+      linkproc();
+      return 0;
   }
   eunlock(ep);
   eput(ep);
   return 0;
+
 }
 
 uint64

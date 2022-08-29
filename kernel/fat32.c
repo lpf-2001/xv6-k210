@@ -68,7 +68,11 @@ static struct entry_cache {
 } ecache;
 
 static struct dirent root;
-
+//changed
+struct dirent_functions fs_func = {eread};
+struct dirent_functions procfs_func = {proc_eread};
+struct dirent eproc[NPROC];
+//changed
 /**
  * Read the Boot Parameter Block.
  * @return  0       if success
@@ -117,6 +121,10 @@ int fat32_init()
     root.valid = 1;
     root.prev = &root;
     root.next = &root;
+
+    //changed
+    root.e_func = &fs_func;
+    //changed
     for(struct dirent *de = ecache.entries; de < ecache.entries + ENTRY_CACHE_NUM; de++) {
         de->dev = 0;
         de->valid = 0;
@@ -125,6 +133,8 @@ int fat32_init()
         de->parent = 0;
         de->next = root.next;
         de->prev = &root;
+        //changed
+        de->e_func = &fs_func;
         initsleeplock(&de->lock, "entry");
         root.next->prev = de;
         root.next = de;
@@ -586,6 +596,107 @@ struct dirent *ealloc(struct dirent *dp, char *name, int attr)
     return ep;
 }
 
+//changed
+struct dirent *ealloc_memory(struct dirent *dp, char *name, int attr)
+{
+    if (!(dp->attribute & ATTR_DIRECTORY)) {
+        panic("ealloc not dir");
+    }
+    if (dp->valid != 1 || !(name = formatname(name))) {        // detect illegal character
+        return NULL;
+    }
+    struct dirent *ep;
+    uint off = 0;
+    if ((ep = dirlookup(dp, name, &off)) != 0) {      // entry exists
+        return ep;
+    }
+    ep = eget(dp, name);
+    elock(ep);
+    ep->attribute = attr;
+    ep->file_size = 0;
+    ep->first_clus = 0;
+    ep->parent = edup(dp);
+    ep->off = off;
+    ep->clus_cnt = 0;
+    ep->cur_clus = 0;
+    ep->dirty = 0;
+    strncpy(ep->filename, name, FAT32_MAX_FILENAME);
+    ep->filename[FAT32_MAX_FILENAME] = '\0';
+    if (attr == ATTR_DIRECTORY) {    // generate "." and ".." for ep
+        ep->attribute |= ATTR_DIRECTORY;
+        ep->cur_clus = ep->first_clus = alloc_clus(dp->dev);
+        //emake(ep, ep, 0);
+        //emake(ep, dp, 32);
+    } else {
+        ep->attribute |= ATTR_ARCHIVE;
+    }
+    //emake(dp, ep, off);
+    ep->valid = 1;
+    eunlock(ep);
+    return ep;
+}
+
+int proc_eread(struct dirent* entry, int user_dst, uint64 dst, uint off, uint n) {
+    //printf("file:%s\n", entry->parent->filename);
+    //printf("size:%d\n", entry->file_size);
+    //printf("off:%d\n", off);
+    char* states[] = {
+    [RUNNABLE] "R",
+    [RUNNING]  "R",
+    [SLEEPING]  "S",
+    [ZOMBIE]    "Z",
+    };
+    if (off > entry->file_size || off + n < off || (entry->attribute & ATTR_DIRECTORY)) {
+        return 0;
+    }
+    char buf[128] = {"\0"};
+    char tmp[10];
+    int pid = atoi(entry->parent->filename);
+    struct proc* p = getproc(pid);
+    if (p == NULL) {
+        return 0;
+    }
+
+    printf("11111111111\n");
+    printf("pid\t(command)\tstate\tppid\tutime\tstime\tcutime\tcstime\tvsz\n");
+    strcat(buf, entry->parent->filename);
+    strcat(buf, "\t(");
+    strcat(buf, p->name);
+    strcat(buf, ")\t\t");
+    strcat(buf, states[p->state]);
+    strcat(buf, "\t");
+    if (p->pid == 1) {
+        strcat(buf, "0");
+    }
+    else {
+        itoa(p->parent->pid, tmp);
+        strcat(buf, tmp);
+    }
+    strcat(buf, "\t");
+    itoa(p->proc_tms.utime, tmp);
+    strcat(buf, tmp);
+    strcat(buf, "\t");
+    itoa(p->proc_tms.stime, tmp);
+    strcat(buf, tmp);
+    strcat(buf, "\t");
+    itoa(p->proc_tms.cutime, tmp);
+    strcat(buf, tmp);
+    strcat(buf, "\t");
+    itoa(p->proc_tms.cstime, tmp);
+    strcat(buf, tmp);
+    strcat(buf, "\t");
+    itoa(p->sz/1024, tmp);
+    strcat(buf, tmp);
+    strcat(buf, "\n");
+    int len = strlen(buf);
+    either_copyout(user_dst,dst,buf,len);
+    return len;
+}
+
+
+//changed
+
+
 struct dirent *edup(struct dirent *entry)
 {
     if (entry != 0) {
@@ -889,6 +1000,11 @@ static char *skipelem(char *path, char *name)
 static struct dirent *lookup_path(char *path, int parent, char *name)
 {
     struct dirent *entry, *next;
+    //changed
+    struct proc* p;
+    struct dirent* tep;
+    char dirname[20];
+    //changed
     if (*path == '/') {
         entry = edup(&root);
     } else if (*path != '\0') {
@@ -897,7 +1013,23 @@ static struct dirent *lookup_path(char *path, int parent, char *name)
         return NULL;
     }
     while ((path = skipelem(path, name)) != 0) {
-        elock(entry);
+        elock(entry);               
+        //changed place
+        if (strncmp(entry->filename, "proc", 4) == 0) {
+            for (p = proc; p < &proc[NPROC]; p++) {
+                itoa(p->pid, dirname);
+                //printf("pid:%d state:%d\n", p->pid, p->state);
+                if (p->state != UNUSED) {
+                    //printf("pid:%d state:%d\n", p->pid, p->state);
+                    tep = ealloc_memory(entry, dirname, ATTR_DIRECTORY);
+                    tep->e_func = &procfs_func;
+                    ealloc_memory(tep, "stat", ATTR_ARCHIVE);
+                    //printf("%s DIR\t0\n", fmtname(tep->filename), tep->file_size);
+                }
+            }
+        }                  
+        //changed place
+                   
         if (!(entry->attribute & ATTR_DIRECTORY)) {
             eunlock(entry);
             eput(entry);
@@ -914,6 +1046,22 @@ static struct dirent *lookup_path(char *path, int parent, char *name)
         }
         eunlock(entry);
         eput(entry);
+
+        //changed 
+        if (strncmp(name, "proc", 4)== 0) {
+            for (p = proc; p < &proc[NPROC]; p++) {
+                itoa(p->pid, dirname);
+                if (p->state != UNUSED) {
+                   // printf("pid:%d state:%d\n", p->pid, p->state);
+                    tep = ealloc_memory(next, dirname, ATTR_DIRECTORY);
+                    tep->e_func = &procfs_func;
+                    ealloc_memory(tep, "stat", ATTR_ARCHIVE);
+                }
+                //itoa(p->pid, tep->filename);
+            }
+        }
+        //changed
+
         entry = next;
     }
     if (parent) {
@@ -932,4 +1080,28 @@ struct dirent *ename(char *path)
 struct dirent *enameparent(char *path, char *name)
 {
     return lookup_path(path, 1, name);
+}
+
+struct dirent* deget(struct dirent* parent, char* name) {
+    return eget(parent, name);
+}
+
+void linkproc()
+{
+    struct dirent* ep = ename("/proc");
+    elock(ep);
+    ep->e_func = &procfs_func;
+    struct proc* p;
+    struct dirent* tep;
+    char pdir[20];
+    for (p = proc; p < &proc[NPROC]; p++) {
+        itoa(p->pid, pdir);
+        //printf("pid:%d state:%d\n", p->pid, p->state);
+        if (p->state != UNUSED) {
+            tep = ealloc_memory(ep, pdir, ATTR_DIRECTORY);
+            ealloc_memory(tep, "stat", ATTR_ARCHIVE);
+            //printf("%s DIR\t0\n", fmtname(tep->filename), tep->file_size);
+        }
+    }
+    eunlock(ep);
 }

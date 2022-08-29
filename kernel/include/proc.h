@@ -85,6 +85,10 @@ struct proc {
 
 };
 
+extern struct proc proc[NPROC];
+//changed
+struct proc* getproc(int pid);
+//changed
 void            reg_info(void);
 int             cpuid(void);
 void            exit(int);

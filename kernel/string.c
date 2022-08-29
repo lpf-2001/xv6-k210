@@ -141,3 +141,85 @@ strchr(const char *s, char c)
       return (char*)s;
   return 0;
 }
+
+char*
+fmtname(char* name)
+{
+    static char buf[32 + 1];
+    int len = strlen(name);
+
+    // Return blank-padded name.
+    if (len >= 32)
+        return name;
+    memmove(buf, name, len);
+    memset(buf + len, ' ', 32 - len);
+    buf[32] = '\0';
+    return buf;
+}
+
+void itoa(uint n, char* s)
+{
+    int i, sign;
+    if ((sign = n) < 0)  /* record sign */
+        n = -n;          /* make n positive */
+    i = 0;
+    do {       /* generate digits in reverse order */
+        s[i++] = n % 10 + '0';   /* get next digit */
+    } while ((n /= 10) > 0);     /* delete it */
+    if (sign < 0)
+        s[i++] = '-';
+    s[i] = '\0';
+    int  j;
+    char c;
+    for (i = 0, j = strlen(s) - 1; i < j; i++, j--) {
+        c = s[i];
+        s[i] = s[j];
+        s[j] = c;
+    }
+}
+
+
+//changed
+char* strcat(char* dest, const char* src)
+{
+    if (dest == NULL || src == NULL) {
+        return NULL;
+    }  //±£Ö¤dest¡¢src·Ç¿Õ
+    char* ret = dest;    //½«destÊ×µØÖ·´¢´æÔÚretÖÐ£¬ÔÚÖºódest++ÔËËãÖÐ£¬¿ÉÒÔ·½±ãÕÒµ½
+    while (*dest != '\0')  //ÓÃÖ¸ÕëÍùºóÒ»¸ö¸öÕÒ£¬ÕÒµ½dest½áÎ²µÄ¡\0¡¯
+        dest++;
+    while ((*dest++ = *src++) != '\0')//°ÑsrcÀïµÄ×Ö·ûÒ»¸ö¸ö·ÅÈëdestºó
+        ;
+    return ret;  //·µ»Ødest×Ö·û´ÆðÊ¼µØÖ·
+}
+//changed
+
+
+int atoi(const char* str)
+{
+    int s = 0;
+    int flag = 0;
+    while (*str == ' ')
+    {
+        str++;
+    }
+
+    if (*str == '-' || *str == '+')
+    {
+        if (*str == '-')
+            flag = 1;
+        str++;
+    }
+
+    while (*str >= '0' && *str <= '9')
+    {
+        s = s * 10 + *str - '0';
+        str++;
+        if (s < 0)
+        {
+            s = 2147483647;
+            break;
+        }
+    }
+    return s * (flag ? -1 : 1);
+}

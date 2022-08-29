@@ -879,3 +879,16 @@ void inthandle(void)
     }
     return;
 }
+
+//changed
+struct proc* getproc(int pid) {
+    struct proc* p;
+    for (p = proc; p < &proc[NPROC]; p++) {
+        if (p->state != UNUSED && p->pid==pid) {
+            return p;
+        }
+    }
+    return NULL;
+}
+
+//changed

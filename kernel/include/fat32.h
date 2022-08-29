@@ -44,11 +44,21 @@ struct dirent {
     short   valid;
     int     ref;
     uint32  off;            // offset in the parent dir entry, for writing convenience
+    //changed
+    struct dirent_functions* e_func; 
+    //changed
     struct dirent *parent;  // because FAT32 doesn't have such thing like inum, use this for cache trick
     struct dirent *next;
     struct dirent *prev;
     struct sleeplock    lock;
 };
+
+//changed
+struct dirent_functions {
+    int  (*eread)(struct dirent*, int, uint64, uint, uint);     // read from file contents
+};
+//changed
+
 
 int             fat32_init(void);
 struct dirent*  dirlookup(struct dirent *entry, char *filename, uint *poff);
@@ -68,5 +78,12 @@ struct dirent*  ename(char *path);
 struct dirent*  enameparent(char *path, char *name);
 int             eread(struct dirent *entry, int user_dst, uint64 dst, uint off, uint n);
 int             ewrite(struct dirent *entry, int user_src, uint64 src, uint off, uint n);
+//changed
+struct dirent*  ealloc_memory(struct dirent* dp, char* name, int attr);
+int             proc_eread(struct dirent* entry, int user_dst, uint64 dst, uint off, uint n);
+
+void            linkproc(void);
+struct dirent*  deget(struct dirent* parent, char* name);
+//changed
 
 #endif
