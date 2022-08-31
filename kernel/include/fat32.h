@@ -55,7 +55,7 @@ struct dirent {
 
 //changed
 struct dirent_functions {
-    int  (*eread)(struct dirent*, int, uint64, uint, uint);     // read from file contents
+    int  (*eread_func)(struct dirent*, int, uint64, uint, uint);     // read from file contents
 };
 //changed
 

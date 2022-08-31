@@ -134,9 +134,12 @@ fileread(struct file *f, uint64 addr, int n)
         break;
     case FD_ENTRY:
         elock(f->ep);
+        //printf("FD_ENTRY\n");
         //changed
-          if((r = f->ep->e_func->eread(f->ep, 1, addr, f->off, n)) > 0)
+          if((r = f->ep->e_func->eread_func(f->ep, 1, addr, f->off, n)) > 0){
+            //printf("if success\n");
             f->off += r;
+          }
         eunlock(f->ep);
         break;
     default:

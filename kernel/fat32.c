@@ -322,6 +322,7 @@ static int reloc_clus(struct dirent *entry, uint off, int alloc)
 // Caller must hold entry->lock.
 int eread(struct dirent *entry, int user_dst, uint64 dst, uint off, uint n)
 {
+    //printf("eread\n");
     if (off > entry->file_size || off + n < off || (entry->attribute & ATTR_DIRECTORY)) {
         return 0;
     }
@@ -404,6 +405,12 @@ static struct dirent *eget(struct dirent *parent, char *name)
             ep->off = 0;
             ep->valid = 0;
             ep->dirty = 0;
+            //changed
+            if (parent)
+                ep->e_func = parent->e_func;
+            else
+                ep->e_func = &fs_func;
+            //changed
             release(&ecache.lock);
             return ep;
         }
@@ -637,9 +644,9 @@ struct dirent *ealloc_memory(struct dirent *dp, char *name, int attr)
 }
 
 int proc_eread(struct dirent* entry, int user_dst, uint64 dst, uint off, uint n) {
-    //printf("file:%s\n", entry->parent->filename);
-    //printf("size:%d\n", entry->file_size);
-    //printf("off:%d\n", off);
+    // printf("file:%s\n", entry->parent->filename);
+    // printf("size:%d\n", entry->file_size);
+    // printf("off:%d\n", off);
     char* states[] = {
     [RUNNABLE] "R",
     [RUNNING]  "R",
@@ -1088,6 +1095,7 @@ struct dirent* deget(struct dirent* parent, char* name) {
 
 void linkproc()
 {
+    //printf("linkproc\n");
     struct dirent* ep = ename("/proc");
     elock(ep);
     ep->e_func = &procfs_func;
