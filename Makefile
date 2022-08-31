@@ -206,6 +206,7 @@ UPROGS=\
 	$U/_strace\
 	$U/_mv\
 	$U/_getpid\
+	$U/_ps\
 
 	# $U/_forktest\
 	# $U/_ln\

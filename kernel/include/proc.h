@@ -83,6 +83,8 @@ struct proc {
 
   struct sigaction sigaction;         //信号类型
 
+
+  int pstmp;
 };
 
 extern struct proc proc[NPROC];
@@ -115,5 +117,5 @@ int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
 uint64          procnum(void);
 void            test_proc_init(int);
-
+int             ps();
 #endif

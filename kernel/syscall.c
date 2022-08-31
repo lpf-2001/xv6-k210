@@ -119,10 +119,13 @@ extern uint64 sys_sysinfo(void);
 extern uint64 sys_rename(void);
 extern uint64 sys_getppid(void);
 uint64 sys_times(void);
+
 extern uint64 sys_getmem(void);
 extern uint64 sys_alarm(void);
 extern uint64 sys_signal(void);
 extern uint64 sys_pause(void);
+
+extern uint64 sys_ps(void);
 
 static uint64 (*syscalls[])(void) = {
   [SYS_fork]        sys_fork,
@@ -157,6 +160,7 @@ static uint64 (*syscalls[])(void) = {
   [SYS_alarm]      sys_alarm,
   [SYS_signal]      sys_signal,
   [SYS_pause]      sys_pause,
+  [SYS_ps]         sys_ps,
 };
 
 static char *sysnames[] = {
@@ -192,6 +196,7 @@ static char *sysnames[] = {
   [SYS_alarm]      "alarm",
   [SYS_signal]      "signal",
   [SYS_pause]      "pause",
+  [SYS_ps]           "ps",
 };
 
 void
@@ -295,3 +300,8 @@ uint64 sys_signal(void)
   return 0;
 }
 
+uint64 sys_ps(void){
+  //printf("sys_ps\n");
+  ps();
+  return 0;
+}

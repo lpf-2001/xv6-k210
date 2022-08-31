@@ -14,6 +14,7 @@
 #include "include/trap.h"
 #include "include/vm.h"
 #include "include/signal.h"
+#include "include/timer.h"
 
 struct cpu cpus[NCPU];
 
@@ -152,7 +153,7 @@ allocproc(void)
 
 found:
   p->pid = allocpid();
-  
+
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == NULL){
     release(&p->lock);
@@ -175,6 +176,10 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
+  acquire(&tickslock);
+  uint64 timestamp = ticks;
+  release(&tickslock);
+  p->pstmp = timestamp;
 
   return p;
 }
@@ -892,3 +897,95 @@ struct proc* getproc(int pid) {
 }
 
 //changed
+
+
+//ps
+void proctime(uint64 total, char* buf) {
+    char tmp[5];
+    int day;
+    int hour;
+    int min;
+    if (total > 86400) {
+        day = total / 86400;
+        total = total % 86400;
+        itoa(day, tmp);
+        if (day>=10) {
+            strcat(buf, tmp);
+        }
+        else {
+            strcat(buf, "0");
+            strcat(buf, tmp);
+        }
+        strcat(buf, "-");
+    }
+    hour = total / 3600;
+    total = total % 3600;
+    itoa(hour, tmp);
+    if (hour>=10) {
+        strcat(buf, tmp);
+    }
+    else {
+        strcat(buf, "0");
+        strcat(buf, tmp);
+    }
+    strcat(buf, ":");
+    min = total / 60;
+    total = total % 60;
+    itoa(min, tmp);
+    if (min >= 10) {
+        strcat(buf, tmp);
+    }
+    else {
+        strcat(buf, "0");
+        strcat(buf, tmp);
+    }
+    strcat(buf, ":");
+    itoa(total, tmp);
+    if (total >= 10) {
+        strcat(buf, tmp);
+    }
+    else {
+        strcat(buf, "0");
+        strcat(buf, tmp);
+    }
+}
+
+int ps()
+{
+struct proc* p;
+    char time[20] = {"\0"};
+    uint64 t;
+    char* states[] = {
+    [RUNNABLE] "R",
+    [RUNNING]  "R",
+    [SLEEPING]  "S",
+    [ZOMBIE]    "Z",
+    };
+    int flag = 0;
+    printf("PID\tCOMMAND\tSTATE\tPPID\tTIME\t\tELAPSED\tVSZ\n");
+    for (p = proc; p < &proc[NPROC]; p++) {
+        if (p->state != UNUSED) {
+            strncpy(time, "\0", 20);
+            flag = 1;
+            printf("%d\t%s\t%s\t", p->pid,p->name, states[p->state]);
+            if (p->pid == 1) {
+                printf("0\t");
+            }
+            else {
+                printf("%d\t", p->parent->pid);
+            }
+            proctime((p->proc_tms.stime+p->proc_tms.utime)/10, time);
+            printf("%s\t", time);
+            strncpy(time, "\0", 20);
+            acquire(&tickslock);
+            t = ticks;
+            release(&tickslock);
+            proctime((t - p->pstmp) / 10, time);
+            printf("%s\t%d\n", time,p->sz/1024);
+        }
+    }
+    if (flag==0)
+        return -1;
+    return 0;
+
+}

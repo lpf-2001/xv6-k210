@@ -664,7 +664,7 @@ int proc_eread(struct dirent* entry, int user_dst, uint64 dst, uint off, uint n)
         return 0;
     }
 
-    printf("11111111111\n");
+    //printf("11111111111\n");
     printf("pid\t(command)\tstate\tppid\tutime\tstime\tcutime\tcstime\tvsz\n");
     strcat(buf, entry->parent->filename);
     strcat(buf, "\t(");

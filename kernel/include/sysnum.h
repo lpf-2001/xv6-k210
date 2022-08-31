@@ -37,4 +37,5 @@
 #define SYS_alarm       30
 #define SYS_signal      31
 #define SYS_pause       32
+#define SYS_ps          33
 #endif
