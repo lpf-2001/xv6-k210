@@ -62,7 +62,10 @@ usertrap(void)
   w_stvec((uint64)kernelvec);
 
   struct proc *p = myproc(); //获取当前进程
-  uint64 timestamp = r_time();//记录当前时间
+  acquire(&tickslock);
+  uint64 times_temp = ticks;
+  release(&tickslock);
+  uint64 timestamp = times_temp;//记录当前时间
   p->ikstmp = timestamp; //赋值给那个进程相应成员变量
   p->proc_tms.utime += timestamp - p->okstmp;
   //当前时间减去上次出内核的时间就是进入内核前的用户时间
@@ -118,7 +121,11 @@ void
 usertrapret(void)
 {
   struct proc *p = myproc();
-  uint64 timestamp = r_time();
+  acquire(&tickslock);
+  uint64 times_temp = ticks;
+  release(&tickslock);
+  uint64 timestamp = times_temp;
+  
   p->okstmp = timestamp;//出内核的时间
   p->proc_tms.stime += timestamp - p->ikstmp;
   //当前时间减去之前进入内核的时间就是在内核的时间

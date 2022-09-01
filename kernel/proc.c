@@ -616,16 +616,20 @@ sched(void)
   if(intr_get())
     panic("sched interruptible");
 
-  
-  p->proc_tms.stime += r_time() - p->ikstmp;
+  acquire(&tickslock);
+  uint64 timestamp=ticks;
+  release(&tickslock);
+  p->proc_tms.stime += timestamp - p->ikstmp;
 
 
   intena = mycpu()->intena;
   swtch(&p->context, &mycpu()->context);
   mycpu()->intena = intena;
 
-
-  p->ikstmp = r_time();
+  acquire(&tickslock);
+  timestamp=ticks;
+  release(&tickslock);
+  p->ikstmp = timestamp;
 }
 
 // Give up the CPU for one scheduling round.
@@ -659,7 +663,10 @@ forkret(void)
     fat32_init();
     myproc()->cwd = ename("/");
   }
-  myproc()->ikstmp = r_time();
+  acquire(&tickslock);
+  uint64 times_temp = ticks;
+  release(&tickslock);
+  myproc()->ikstmp = times_temp;
   usertrapret();
 }
 
