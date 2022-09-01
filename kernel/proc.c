@@ -522,6 +522,7 @@ wait(uint64 addr)
             release(&p->lock);
             return -1;
           }
+          //在wait中等待所有子进程，计算子进程的相应时间
           p->proc_tms.cstime += np->proc_tms.stime + np->proc_tms.cstime;
           p->proc_tms.cutime += np->proc_tms.utime + np->proc_tms.cutime;
           freeproc(np);

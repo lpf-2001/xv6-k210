@@ -119,12 +119,10 @@ extern uint64 sys_sysinfo(void);
 extern uint64 sys_rename(void);
 extern uint64 sys_getppid(void);
 uint64 sys_times(void);
-
 extern uint64 sys_getmem(void);
 extern uint64 sys_alarm(void);
 extern uint64 sys_signal(void);
 extern uint64 sys_pause(void);
-
 extern uint64 sys_ps(void);
 
 static uint64 (*syscalls[])(void) = {
@@ -252,11 +250,11 @@ sys_sysinfo(void)
 uint64 sys_getppid(void)
 {
   printf("It's sys_getppid\n");
-  struct proc *p = myproc();
-  struct proc *parents = p->parent;
-  printf("current pid is:%d\n",p->pid);
-  printf("parent's pid:%d\n",parents->pid);
-  return parents->pid;
+  struct proc *p = myproc();  //获取当前进程
+  struct proc *parents = p->parent;  //获取父进程
+  printf("current pid is:%d\n",p->pid); //输出当前进程pid
+  printf("parent's pid:%d\n",parents->pid); //输出父进程pid
+  return parents->pid; //返回父进程pid
 }
 
 uint64 sys_times(void) {

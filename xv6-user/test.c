@@ -68,6 +68,7 @@ int test_signal2()
 }
 
 int main() {
+
   test_signal2();
   exit(0);
 }
